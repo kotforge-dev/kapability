@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.EXECUTE_APP_FUNCTIONS" />
+
+    <application
+        android:name=".DemoApplication"
+        android:label="Kapability Demo">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          No <service> is declared here: the androidx.appfunctions-service library merges in
+          PlatformAppFunctionService (enabled on API >= 36) and ExtensionAppFunctionService, and the
+          KSP-generated inventory/invoker registries wire our @AppFunction into them at runtime.
+        -->
+
+    </application>
+
+</manifest>
