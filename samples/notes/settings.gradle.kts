@@ -14,15 +14,15 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
+        mavenLocal()   // resolve the Kapability SDK (dev.kapability:*:0.1.0-SNAPSHOT) published locally
         google()
         mavenCentral()
     }
 }
 
-rootProject.name = "kapability"
+// Standalone build: it consumes the Kapability SDK purely by Maven coordinate, exactly as an
+// external developer's project would — no project(...) references to the SDK modules.
+rootProject.name = "notes-sample"
 
-// The published SDK. The notes sample under samples/notes is a SEPARATE build that
-// consumes these from mavenLocal, so it is intentionally NOT included here.
-include(":kapability-annotations")
-include(":kapability-runtime")
-include(":kapability-processor")
+include(":shared")
+include(":androidApp")
