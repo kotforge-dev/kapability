@@ -1,4 +1,4 @@
-package dev.kapability.runtime
+package dev.kotforge.kapability.runtime
 
 /** The encoded inbound parameters for a capability invocation. */
 typealias CapabilityParams = Map<String, String>

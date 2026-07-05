@@ -1,4 +1,4 @@
-package dev.kapability.gradle
+package dev.kotforge.kapability.gradle
 
 import com.android.build.api.dsl.ApplicationExtension
 import com.google.devtools.ksp.gradle.KspExtension
@@ -6,7 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
-private const val GROUP = "dev.kapability"
+private const val GROUP = "dev.kotforge"
 
 /**
  * One context-adaptive plugin:
@@ -77,7 +77,7 @@ class KapabilityPlugin : Plugin<Project> {
         // but read `capabilityProject` (set later in the consumer's kapability{} block) lazily —
         // adding sources in afterEvaluate is too late for AGP's source-set finalization.
         fun capProject(): Project = ext.capabilityProject.orNull
-            ?: error("dev.kapability: set `kapability { capabilityProject = project(\":shared\") }` in the app module.")
+            ?: error("dev.kotforge.kapability: set `kapability { capabilityProject = project(\":shared\") }` in the app module.")
 
         val genDir = project.provider {
             capProject().layout.buildDirectory.dir("generated/kapability/kotlin").get().asFile

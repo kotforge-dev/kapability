@@ -1,4 +1,4 @@
-package dev.kapability.processor
+package dev.kotforge.kapability.processor
 
 import com.squareup.kotlinpoet.BOOLEAN
 import com.squareup.kotlinpoet.DOUBLE

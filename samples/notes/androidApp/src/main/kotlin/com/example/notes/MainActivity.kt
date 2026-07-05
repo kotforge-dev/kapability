@@ -1,4 +1,4 @@
-package dev.kapability.demo
+package com.example.notes
 
 import android.app.Activity
 import android.os.Bundle

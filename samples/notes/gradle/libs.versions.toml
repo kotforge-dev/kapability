@@ -15,9 +15,9 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 appfunctions = { module = "androidx.appfunctions:appfunctions", version.ref = "appfunctions" }
 appfunctions-service = { module = "androidx.appfunctions:appfunctions-service", version.ref = "appfunctions" }
 appfunctions-compiler = { module = "androidx.appfunctions:appfunctions-compiler", version.ref = "appfunctions" }
-kapability-annotations = { module = "dev.kapability:kapability-annotations", version.ref = "kapability" }
-kapability-runtime = { module = "dev.kapability:kapability-runtime", version.ref = "kapability" }
-kapability-processor = { module = "dev.kapability:kapability-processor", version.ref = "kapability" }
+kapability-annotations = { module = "dev.kotforge:kapability-annotations", version.ref = "kapability" }
+kapability-runtime = { module = "dev.kotforge:kapability-runtime", version.ref = "kapability" }
+kapability-processor = { module = "dev.kotforge:kapability-processor", version.ref = "kapability" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -26,4 +26,4 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 skie = { id = "co.touchlab.skie", version.ref = "skie" }
-kapability = { id = "dev.kapability", version.ref = "kapability" }
+kapability = { id = "dev.kotforge.kapability", version.ref = "kapability" }

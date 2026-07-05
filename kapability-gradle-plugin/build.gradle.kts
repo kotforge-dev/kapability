@@ -25,8 +25,8 @@ dependencies {
 gradlePlugin {
     plugins {
         create("kapability") {
-            id = "dev.kapability"
-            implementationClass = "dev.kapability.gradle.KapabilityPlugin"
+            id = "dev.kotforge.kapability"
+            implementationClass = "dev.kotforge.kapability.gradle.KapabilityPlugin"
         }
     }
 }
@@ -40,11 +40,11 @@ val generateVersions by tasks.registering {
     val coroutinesVersion = libs.versions.coroutines.get()
     outputs.dir(outDir)
     doLast {
-        val file = outDir.get().file("dev/kapability/gradle/Versions.kt").asFile
+        val file = outDir.get().file("dev/kotforge/kapability/gradle/Versions.kt").asFile
         file.parentFile.mkdirs()
         file.writeText(
             """
-            package dev.kapability.gradle
+            package dev.kotforge.kapability.gradle
 
             internal object Versions {
                 const val SDK = "$sdkVersion"

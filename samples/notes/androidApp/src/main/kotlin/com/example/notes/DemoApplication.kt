@@ -1,11 +1,11 @@
-package dev.kapability.demo
+package com.example.notes
 
 import android.app.Application
 import androidx.appfunctions.service.AppFunctionConfiguration
-import dev.kapability.KapabilityRuntime
-import dev.kapability.NoteCapabilities
-import dev.kapability.NoteRepository
-import dev.kapability.generated.NoteCapabilitiesAppFunctions
+import dev.kotforge.kapability.KapabilityRuntime
+import com.example.notes.NoteCapabilities
+import com.example.notes.NoteRepository
+import dev.kotforge.kapability.generated.NoteCapabilitiesAppFunctions
 
 /**
  * The only wiring a consumer writes:

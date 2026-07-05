@@ -1,4 +1,4 @@
-package dev.kapability.processor
+package dev.kotforge.kapability.processor
 
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
@@ -9,10 +9,10 @@ import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 
 internal object Fqn {
-    const val CAPABILITY = "dev.kapability.annotations.Capability"
-    const val CAPABILITY_PARAM = "dev.kapability.annotations.CapabilityParam"
-    const val CAPABILITY_ENTITY = "dev.kapability.annotations.CapabilityEntity"
-    const val CAPABILITY_ID = "dev.kapability.annotations.CapabilityId"
+    const val CAPABILITY = "dev.kotforge.kapability.annotations.Capability"
+    const val CAPABILITY_PARAM = "dev.kotforge.kapability.annotations.CapabilityParam"
+    const val CAPABILITY_ENTITY = "dev.kotforge.kapability.annotations.CapabilityEntity"
+    const val CAPABILITY_ID = "dev.kotforge.kapability.annotations.CapabilityId"
 }
 
 /** A capability parameter with its agent-facing description. */

@@ -1,9 +1,9 @@
-package dev.kapability.gradle
+package dev.kotforge.kapability.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.provider.Property
 
-/** Configuration for the `dev.kapability` plugin. */
+/** Configuration for the `dev.kotforge.kapability` plugin. */
 abstract class KapabilityExtension {
     /**
      * Android app modules only: the KMP module that hosts the `@Capability` declarations (whose
