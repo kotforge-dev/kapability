@@ -56,6 +56,26 @@ class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolP
         val capabilities = functions.map { it.toCapabilityModel() }
         val originating = capabilities.mapNotNull { it.originatingFile }
 
+        // Fail-fast: refuse unsupported types instead of silently mis-generating.
+        var hasError = false
+        capabilities.forEach { cap ->
+            cap.params.filter { scalarOf(it.type) == null }.forEach {
+                hasError = true
+                env.logger.error(
+                    "Kapability: unsupported type '${it.type}' for parameter '${it.name}' in " +
+                        "capability '${cap.functionName}'. Supported: String, Int, Double, Boolean."
+                )
+            }
+            cap.entity?.properties?.filter { scalarOf(it.type) == null }?.forEach {
+                hasError = true
+                env.logger.error(
+                    "Kapability: unsupported type '${it.type}' for property '${it.name}' in " +
+                        "@CapabilityEntity '${cap.entity.className.simpleName}'. Supported: String, Int, Double, Boolean."
+                )
+            }
+        }
+        if (hasError) return emptyList()
+
         if (isCommon) {
             generateCommonRuntime(capabilities, originating)
             // Two-pass mode: emit the Android @AppFunction wrapper as PLAIN SOURCE into a directory
@@ -107,10 +127,13 @@ class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolP
                 cap.enclosing.fieldName(), CAPABILITY_EXCEPTION,
                 "${cap.enclosing.simpleName} is not installed. Call KapabilityRuntime.install(...) at startup.",
             )
-            val args = cap.params.map { CodeBlock.of("%N = params.%M(%S)", it.name, REQUIRED_PARAM, it.name) }
+            val args = cap.params.map {
+                CodeBlock.of("%N = params.%M(%S)%L", it.name, REQUIRED_PARAM, it.name, scalarOf(it.type)!!.kotlinDecodeSuffix())
+            }
             body.addStatement("val result = instance.%N(%L)", cap.functionName, args.joinToCode(", "))
             if (cap.entity != null) {
-                val entries = cap.entity.properties.map { CodeBlock.of("%S to result.%N", it, it) }
+                // Everything is encoded to String over the bridge; toString() is identity for String.
+                val entries = cap.entity.properties.map { CodeBlock.of("%S to result.%N.toString()", it.name, it.name) }
                 body.addStatement("%M(%L)", MAP_OF, entries.joinToCode(", "))
             } else {
                 body.addStatement("emptyMap<String, String>()")
@@ -138,8 +161,9 @@ class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolP
 
     // ---- android: @AppFunctionSerializable entities + @AppFunction wrappers ----
 
-    private fun buildAndroidFileSpec(caps: List<CapabilityModel>): FileSpec {
+    private fun buildAndroidFileSpec(allCaps: List<CapabilityModel>): FileSpec {
         val file = FileSpec.builder(GENERATED_PACKAGE, "KapabilityAppFunctions")
+        val caps = allCaps.filter { "ANDROID" in it.platforms }
 
         // one @AppFunctionSerializable data class per distinct @CapabilityEntity return type
         caps.mapNotNull { it.entity }.distinctBy { it.className }.forEach { entity ->
@@ -149,12 +173,14 @@ class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolP
                     .addAnnotation(APP_FUNCTION_SERIALIZABLE)
                     .primaryConstructor(
                         FunSpec.constructorBuilder().apply {
-                            entity.properties.forEach { addParameter(it, STRING) }
+                            entity.properties.forEach { addParameter(it.name, scalarOf(it.type)!!.androidType()) }
                         }.build()
                     )
                     .apply {
                         entity.properties.forEach {
-                            addProperty(PropertySpec.builder(it, STRING).initializer(it).build())
+                            addProperty(
+                                PropertySpec.builder(it.name, scalarOf(it.type)!!.androidType()).initializer(it.name).build()
+                            )
                         }
                     }
                     .build()
@@ -190,14 +216,16 @@ class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolP
         fn.addKdoc("@param appFunctionContext The context in which the AppFunction is executed.\n")
         cap.params.forEach { fn.addKdoc("@param %L %L\n", it.name, it.description) }
 
-        cap.params.forEach { fn.addParameter(it.name, STRING) }
+        cap.params.forEach { fn.addParameter(it.name, scalarOf(it.type)!!.androidType()) }
 
-        val invokeArgs = cap.params.map { CodeBlock.of("%S to %N", it.name, it.name) }
+        val invokeArgs = cap.params.map { CodeBlock.of("%S to %N.toString()", it.name, it.name) }
         fn.addStatement(
             "val result = %T.invoke(%S, %M(%L))",
             KAPABILITY_RUNTIME, cap.id, MAP_OF, invokeArgs.joinToCode(", "),
         )
-        val ctorArgs = cap.entity!!.properties.map { CodeBlock.of("%N = result.getValue(%S)", it, it) }
+        val ctorArgs = cap.entity!!.properties.map {
+            CodeBlock.of("%N = result.getValue(%S)%L", it.name, it.name, scalarOf(it.type)!!.kotlinDecodeSuffix())
+        }
         fn.addStatement("return %T(%L)", returnType, ctorArgs.joinToCode(", "))
         return fn.build()
     }

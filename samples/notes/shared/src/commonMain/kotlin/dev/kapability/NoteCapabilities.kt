@@ -2,18 +2,26 @@ package dev.kapability
 
 import dev.kapability.annotations.Capability
 import dev.kapability.annotations.CapabilityParam
+import dev.kapability.annotations.Platform
 
 /**
- * The developer-authored capability — declared ONCE in commonMain. The `@Capability` annotation is
- * all the developer writes; the Kapability KSP processor generates the Android `@AppFunction` wrapper,
- * the `@AppFunctionSerializable` result, and the common `KapabilityRuntime.invoke()` dispatch.
- * The `suspend` modifier is what SKIE turns into a Swift `async` method on iOS.
+ * Developer-authored capabilities, declared ONCE in commonMain. Kapability generates the Android
+ * `@AppFunction` glue and the iOS Swift `AppIntent`, both dispatching through the generated
+ * `KapabilityRuntime.invoke()`.
  */
 class NoteCapabilities(private val repo: NoteRepository) {
 
-    @Capability(description = "Create a note with the given title and content")
+    @Capability(description = "Create a note with the given title, content and priority")
     suspend fun createNote(
         @CapabilityParam(description = "Title of the note") title: String,
         @CapabilityParam(description = "Body content of the note") content: String,
-    ): Note = repo.create(title, content)
+        @CapabilityParam(description = "Priority from 1 (low) to 5 (high)") priority: Int,
+    ): Note = repo.create(title, content, priority)
+
+    /** Android-only: exercises `@Capability(platforms = [ANDROID])` — no iOS intent is generated. */
+    @Capability(
+        description = "Get the most recently created note",
+        platforms = [Platform.ANDROID],
+    )
+    suspend fun latestNote(): Note = repo.latest()
 }
