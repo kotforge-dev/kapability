@@ -73,6 +73,14 @@ tasks.withType<KotlinCompilationTask<*>>().configureEach {
 tasks.matching { it.name.startsWith("ksp") && it.name != "kspCommonMainKotlinMetadata" }
     .configureEach { dependsOn("kspCommonMainKotlinMetadata") }
 
+// The processor emits the Android wrapper + Swift via File I/O (not KSP CodeGenerator), so declare
+// those dirs as outputs of the metadata task — otherwise a `clean` removes them but the task stays
+// up-to-date and never regenerates. (The Gradle plugin will model this properly.)
+tasks.matching { it.name == "kspCommonMainKotlinMetadata" }.configureEach {
+    outputs.dir(kapabilityAndroidGenDir)
+    outputs.dir(kapabilitySwiftGenDir)
+}
+
 android {
     namespace = "dev.kapability.shared"
     compileSdk = libs.versions.compileSdk.get().toInt()
