@@ -1,5 +1,6 @@
 pluginManagement {
     repositories {
+        mavenLocal()   // resolve the dev.kapability plugin published locally
         google {
             content {
                 includeGroupByRegex("com\\.android.*")
