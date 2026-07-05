@@ -37,6 +37,13 @@ class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolP
      */
     private val androidOutDir: String? = env.options["kapability.androidOutDir"]
 
+    /**
+     * When set (KSP option `kapability.swiftOutDir`), the iOS Swift AppIntent/AppEntity are written
+     * as plain source into this directory during the common pass, for Xcode to compile into the app
+     * (Kotlin/Native cannot produce discoverable App Intents — they must be real Swift).
+     */
+    private val swiftOutDir: String? = env.options["kapability.swiftOutDir"]
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
         env.logger.warn("Kapability KSP: platforms=${env.platforms.map { it.platformName }} isCommon=$isCommon")
 
@@ -57,6 +64,10 @@ class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolP
             // wrapper appears (one round later) and the function is never indexed.
             androidOutDir?.let { dir ->
                 buildAndroidFileSpec(capabilities).writeTo(java.io.File(dir))
+            }
+            // Emit the iOS Swift AppIntent/AppEntity as plain source for Xcode to compile.
+            swiftOutDir?.let { dir ->
+                SwiftEmitter.emit(capabilities, java.io.File(dir))
             }
         } else if (androidOutDir == null) {
             // Single-pass fallback (no two-pass dir configured): emit via KSP CodeGenerator.
