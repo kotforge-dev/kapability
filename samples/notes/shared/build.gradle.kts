@@ -50,8 +50,12 @@ kotlin {
 // future dev.kapability Gradle plugin will encapsulate.
 val kapabilityAndroidGenDir = layout.buildDirectory.dir("generated/kapability/kotlin")
 
+// The iOS AppIntent/AppEntity Swift is emitted into the app's Generated/ folder for Xcode to compile.
+val kapabilitySwiftGenDir = rootDir.resolve("iosApp/Generated")
+
 ksp {
     arg("kapability.androidOutDir", kapabilityAndroidGenDir.get().asFile.absolutePath)
+    arg("kapability.swiftOutDir", kapabilitySwiftGenDir.absolutePath)
 }
 
 dependencies {

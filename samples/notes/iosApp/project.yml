@@ -13,6 +13,8 @@ targets:
     platform: iOS
     sources:
       - path: Sources
+      # Kapability-generated AppIntent/AppEntity Swift (emitted by the shared common KSP pass).
+      - path: Generated
     dependencies:
       # The SKIE-processed KMP framework. embed+sign so the simulator app can load it.
       - framework: ../shared/build/XCFrameworks/debug/Shared.xcframework
