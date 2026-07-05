@@ -1,4 +1,4 @@
-package dev.kapability
+package com.example.notes
 
 /**
  * Trivial in-memory store. The point is only to prove both platform entry points reach the *same*

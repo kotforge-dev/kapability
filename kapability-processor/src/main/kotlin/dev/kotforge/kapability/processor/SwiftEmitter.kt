@@ -1,4 +1,4 @@
-package dev.kapability.processor
+package dev.kotforge.kapability.processor
 
 import java.io.File
 

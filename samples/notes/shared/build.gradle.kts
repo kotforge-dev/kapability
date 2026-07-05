@@ -24,7 +24,7 @@ kotlin {
         target.binaries.framework {
             baseName = "Shared"
             isStatic = true
-            binaryOption("bundleId", "dev.kapability.shared")
+            binaryOption("bundleId", "com.example.notes.shared")
             xcf.add(this)
         }
     }
@@ -32,13 +32,13 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
-            // kapability-annotations + kapability-runtime are added by the dev.kapability plugin.
+            // kapability-annotations + kapability-runtime are added by the dev.kotforge.kapability plugin.
         }
     }
 }
 
 android {
-    namespace = "dev.kapability.shared"
+    namespace = "com.example.notes.shared"
     compileSdk = libs.versions.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()

@@ -1,4 +1,4 @@
-package dev.kapability.processor
+package dev.kotforge.kapability.processor
 
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSAnnotation

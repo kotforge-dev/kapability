@@ -1,6 +1,6 @@
 pluginManagement {
     repositories {
-        mavenLocal()   // resolve the dev.kapability plugin published locally
+        mavenLocal()   // resolve the dev.kotforge.kapability plugin published locally
         google {
             content {
                 includeGroupByRegex("com\\.android.*")
@@ -15,7 +15,7 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
-        mavenLocal()   // resolve the Kapability SDK (dev.kapability:*:0.1.0-SNAPSHOT) published locally
+        mavenLocal()   // resolve the Kapability SDK (dev.kotforge:*:0.1.0-SNAPSHOT) published locally
         google()
         mavenCentral()
     }

@@ -1,8 +1,8 @@
-package dev.kapability
+package com.example.notes
 
-import dev.kapability.annotations.Capability
-import dev.kapability.annotations.CapabilityParam
-import dev.kapability.annotations.Platform
+import dev.kotforge.kapability.annotations.Capability
+import dev.kotforge.kapability.annotations.CapabilityParam
+import dev.kotforge.kapability.annotations.Platform
 
 /**
  * Developer-authored capabilities, declared ONCE in commonMain. Kapability generates the Android

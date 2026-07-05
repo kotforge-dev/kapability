@@ -1,4 +1,4 @@
-package dev.kapability.annotations
+package dev.kotforge.kapability.annotations
 
 /** Platforms a capability can be surfaced to. */
 enum class Platform { ANDROID, IOS }

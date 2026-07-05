@@ -7,6 +7,6 @@ plugins {
 
 // Coordinates for every published SDK module (group:artifact:version).
 allprojects {
-    group = "dev.kapability"
+    group = "dev.kotforge"
     version = "0.1.0-SNAPSHOT"
 }

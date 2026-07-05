@@ -1,4 +1,4 @@
-package dev.kapability.processor
+package dev.kotforge.kapability.processor
 
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment

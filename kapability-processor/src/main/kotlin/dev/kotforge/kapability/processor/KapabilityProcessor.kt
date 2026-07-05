@@ -1,4 +1,4 @@
-package dev.kapability.processor
+package dev.kotforge.kapability.processor
 
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
@@ -12,18 +12,18 @@ import com.squareup.kotlinpoet.ksp.writeTo
 
 // Typealiases (= Map<String,String>) from kapability-runtime. Using them keeps the generated
 // signatures free of parameterized types, which KotlinPoet builds via APIs that don't resolve here.
-private val CAPABILITY_PARAMS = ClassName("dev.kapability.runtime", "CapabilityParams")
-private val CAPABILITY_RESULT = ClassName("dev.kapability.runtime", "CapabilityResult")
-private val CAPABILITY_EXCEPTION = ClassName("dev.kapability.runtime", "CapabilityException")
-private val REQUIRED_PARAM = MemberName("dev.kapability.runtime", "requiredParam")
+private val CAPABILITY_PARAMS = ClassName("dev.kotforge.kapability.runtime", "CapabilityParams")
+private val CAPABILITY_RESULT = ClassName("dev.kotforge.kapability.runtime", "CapabilityResult")
+private val CAPABILITY_EXCEPTION = ClassName("dev.kotforge.kapability.runtime", "CapabilityException")
+private val REQUIRED_PARAM = MemberName("dev.kotforge.kapability.runtime", "requiredParam")
 private val MAP_OF = MemberName("kotlin.collections", "mapOf")
-private val KAPABILITY_RUNTIME = ClassName("dev.kapability", "KapabilityRuntime")
+private val KAPABILITY_RUNTIME = ClassName("dev.kotforge.kapability", "KapabilityRuntime")
 
 private val APP_FUNCTION = ClassName("androidx.appfunctions.service", "AppFunction")
 private val APP_FUNCTION_CONTEXT = ClassName("androidx.appfunctions", "AppFunctionContext")
 private val APP_FUNCTION_SERIALIZABLE = ClassName("androidx.appfunctions", "AppFunctionSerializable")
 
-private const val GENERATED_PACKAGE = "dev.kapability.generated"
+private const val GENERATED_PACKAGE = "dev.kotforge.kapability.generated"
 
 class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolProcessor {
 
@@ -153,7 +153,7 @@ class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolP
                 .build()
         )
 
-        FileSpec.builder("dev.kapability", "KapabilityRuntime")
+        FileSpec.builder("dev.kotforge.kapability", "KapabilityRuntime")
             .addType(runtime.build())
             .build()
             .writeTo(env.codeGenerator, aggregating = true, originatingKSFiles = originating)

@@ -1,7 +1,7 @@
-package dev.kapability
+package com.example.notes
 
-import dev.kapability.annotations.CapabilityEntity
-import dev.kapability.annotations.CapabilityId
+import dev.kotforge.kapability.annotations.CapabilityEntity
+import dev.kotforge.kapability.annotations.CapabilityId
 
 /**
  * The domain entity, declared once in commonMain. `@CapabilityEntity` makes Kapability generate the

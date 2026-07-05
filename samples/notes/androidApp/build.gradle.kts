@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.kapability.demo"
+    namespace = "com.example.notes"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "dev.kapability.demo"
+        applicationId = "com.example.notes"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.compileSdk.get().toInt()
         versionCode = 1
@@ -38,5 +38,5 @@ kapability {
 dependencies {
     implementation(project(":shared"))
     implementation(libs.kotlinx.coroutines.android)
-    // androidx.appfunctions + appfunctions-compiler (ksp) are added by the dev.kapability plugin.
+    // androidx.appfunctions + appfunctions-compiler (ksp) are added by the dev.kotforge.kapability plugin.
 }
