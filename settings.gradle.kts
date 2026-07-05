@@ -26,3 +26,4 @@ rootProject.name = "kapability"
 include(":kapability-annotations")
 include(":kapability-runtime")
 include(":kapability-processor")
+include(":kapability-gradle-plugin")
