@@ -1,5 +1,6 @@
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.plugins.signing.SigningExtension
 
 plugins {
@@ -12,7 +13,8 @@ plugins {
 // Coordinates for every published SDK module (group:artifact:version).
 allprojects {
     group = "dev.kotforge"
-    version = "0.1.0-SNAPSHOT"
+    // Release CI passes -PkapabilityVersion=<tag> (e.g. 0.1.0); defaults to a snapshot otherwise.
+    version = (findProperty("kapabilityVersion") as String?) ?: "0.1.0-SNAPSHOT"
 }
 
 // ---- Publishing convention for the library modules (Maven Central via built-in maven-publish) ----
@@ -27,12 +29,23 @@ val libraryPoms = mapOf(
 )
 
 subprojects {
+    val proj = this
     val pom = libraryPoms[name] ?: return@subprojects
     plugins.withId("maven-publish") {
         pluginManager.apply("signing")
 
         extensions.configure<PublishingExtension> {
             publications.withType<MavenPublication>().configureEach {
+                // Maven Central requires a javadoc jar per artifact; Kotlin has none, so publish an
+                // empty one. Each publication gets its OWN jar (distinct file) so the per-publication
+                // signing tasks don't collide.
+                val publicationName = name
+                artifact(
+                    proj.tasks.register("javadocJar${publicationName.replaceFirstChar { it.uppercase() }}", Jar::class.java) {
+                        archiveClassifier.set("javadoc")
+                        archiveBaseName.set("javadoc-$publicationName")
+                    }
+                )
                 pom {
                     name.set(pom.first)
                     description.set(pom.second)
