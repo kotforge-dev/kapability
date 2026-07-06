@@ -1,66 +1,79 @@
-# Kapability
+<div align="center">
 
-**Declare an app capability once in Kotlin Multiplatform `commonMain` — get native Android
-[AppFunctions](https://developer.android.com/ai/appfunctions) and iOS
-[App Intents](https://developer.apple.com/documentation/appintents) generated for you.**
+# ⚡ Kapability
+
+### Declare an app capability **once** in Kotlin Multiplatform — ship it to **Android AppFunctions** _and_ **iOS App Intents**.
+
+[![Maven Central](https://img.shields.io/maven-central/v/dev.kotforge/kapability-annotations?style=for-the-badge&logo=apachemaven&logoColor=white&label=Maven%20Central&color=3DDC84)](https://central.sonatype.com/artifact/dev.kotforge/kapability-annotations)
+[![Gradle Plugin](https://img.shields.io/gradle-plugin-portal/v/dev.kotforge.kapability?style=for-the-badge&logo=gradle&logoColor=white&label=Gradle%20Plugin&color=02303A)](https://plugins.gradle.org/plugin/dev.kotforge.kapability)
+[![License](https://img.shields.io/badge/License-Apache%202.0-D22128?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
+
+[![CI](https://img.shields.io/github/actions/workflow/status/kotforge-dev/kapability/ci.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white&label=CI)](https://github.com/kotforge-dev/kapability/actions)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.2.20-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS-4285F4?style=flat-square)](#requirements)
+[![KMP](https://img.shields.io/badge/Kotlin-Multiplatform-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](https://kotlinlang.org/docs/multiplatform.html)
+
+</div>
+
+---
 
 Android (Gemini) and iOS (Siri / Apple Intelligence) are converging on the same idea: apps expose
-structured, self-describing functions that on-device AI agents can discover and invoke. The two
-APIs are conceptually identical but completely incompatible in implementation — so a KMP team today
-writes and maintains two parallel capability layers.
+structured, self-describing functions that on-device AI agents can discover and invoke. Android calls
+it **[AppFunctions](https://developer.android.com/ai/appfunctions)**; Apple calls it
+**[App Intents](https://developer.apple.com/documentation/appintents)**. The two APIs are conceptually
+identical — annotated function + typed params + description + entity types — but completely incompatible
+in implementation. So a KMP team today writes and maintains **two parallel capability layers**.
 
-Kapability is a **Gradle plugin + KSP processor + thin runtime** that lets you write this once:
+**Kapability collapses that into one.** A Gradle plugin + KSP processor + thin runtime that turns a single
+`@Capability` declaration in `commonMain` into native glue for both platforms at build time.
+
+> [!NOTE]
+> **Status: `0.1.0` — early / pre-release.** Proven end-to-end on both platforms; the public API may still change.
+
+## ✨ Why Kapability
+
+- 🎯 **Declare once, ship both** — one annotated function in `commonMain`, native on Android and iOS.
+- 🔌 **Zero hand-written glue** — the `@AppFunction` wrapper, `@AppFunctionSerializable` types, the Swift `AppIntent` + `AppEntity`, and the dispatch bridge are all generated.
+- 🏗️ **Official toolchains** — feeds Google's `androidx.appfunctions` compiler and Xcode's App Intents extraction; no reimplemented metadata formats.
+- 🧭 **Graceful asymmetry** — `@Capability(platforms = [ANDROID])` for platform-specific capabilities.
+- 🛡️ **Fail fast** — unsupported types stop the build with a clear message instead of mis-generating.
+- ⚙️ **One line of setup** — `plugins { id("dev.kotforge.kapability") }`.
+
+## 🚀 Installation
+
+Artifacts are on **Maven Central** and the plugin is on the **Gradle Plugin Portal**, so the default
+repositories are enough:
 
 ```kotlin
-// commonMain
-@CapabilityEntity(description = "A note in the app")
-data class Note(
-    @CapabilityId val id: String,
-    val title: String,
-    val content: String,
-)
-
-class NoteCapabilities(private val repo: NoteRepository) {
-
-    @Capability(description = "Create a note with the given title and content")
-    suspend fun createNote(
-        @CapabilityParam(description = "Title of the note") title: String,
-        @CapabilityParam(description = "Body content of the note") content: String,
-    ): Note = repo.create(title, content)
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
 }
 ```
 
-…and get, at build time:
-
-- **Android** — a generated `@AppFunction` wrapper + `@AppFunctionSerializable` types feeding the
-  official `androidx.appfunctions` compiler (AppSearch-indexable, invokable by Gemini).
-- **iOS** — generated Swift `AppIntent` + `AppEntity` whose `perform()` delegates into the shared
-  KMP framework (via [SKIE](https://skie.touchlab.co/) for `suspend` → Swift `async`).
-
-Both platforms dispatch through a single generated `KapabilityRuntime.invoke()` entry point.
-
-> **Status: early / pre-release (0.1).** Proven end-to-end on both platforms; APIs may change.
-
-## Setup
-
-Apply the plugin to your KMP module and your Android app module:
+**Your KMP module** (where capabilities live):
 
 ```kotlin
-// shared/build.gradle.kts (your KMP module)
+// shared/build.gradle.kts
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
-    id("co.touchlab.skie")        // required for the iOS suspend->async bridge
-    id("dev.kotforge.kapability")
+    id("co.touchlab.skie")                       // required: Kotlin suspend -> Swift async bridge
+    id("dev.kotforge.kapability") version "0.1.0"
 }
 ```
 
+**Your Android app module:**
+
 ```kotlin
-// androidApp/build.gradle.kts (your Android application)
+// androidApp/build.gradle.kts
 plugins {
     id("com.android.application")
     kotlin("android")
-    id("dev.kotforge.kapability")
+    id("dev.kotforge.kapability") version "0.1.0"
 }
 
 kapability {
@@ -68,57 +81,93 @@ kapability {
 }
 ```
 
-The plugin wires the KSP processor, the generated-source directories, task ordering, and the
-`androidx.appfunctions` two-pass — nothing else to configure.
+That's it — the plugin adds the `kapability-annotations` / `kapability-runtime` dependencies, wires the
+KSP processor + the `androidx.appfunctions` two-pass, and manages the generated sources for you.
 
-## How it works
+## ✍️ Usage
+
+Write this **once**, in `commonMain`:
+
+```kotlin
+import dev.kotforge.kapability.annotations.*
+
+@CapabilityEntity(description = "A note in the app")
+data class Note(
+    @CapabilityId val id: String,
+    val title: String,
+    val content: String,
+    val priority: Int,
+)
+
+class NoteCapabilities(private val repo: NoteRepository) {
+
+    @Capability(description = "Create a note with the given title, content and priority")
+    suspend fun createNote(
+        @CapabilityParam(description = "Title of the note") title: String,
+        @CapabilityParam(description = "Body content of the note") content: String,
+        @CapabilityParam(description = "Priority from 1 (low) to 5 (high)") priority: Int,
+    ): Note = repo.create(title, content, priority)
+}
+```
+
+…and Kapability generates, at build time:
+
+| Platform | Generated | Reaches |
+|---|---|---|
+| 🤖 **Android** | `@AppFunction` wrapper + `@AppFunctionSerializable` types → `androidx.appfunctions` | **Gemini** (AppSearch-indexed) |
+| 🍎 **iOS** | Swift `struct CreateNoteIntent: AppIntent` + `AppEntity` (via SKIE `async`) | **Siri / Shortcuts / Spotlight** |
+
+Both dispatch through one generated `KapabilityRuntime.invoke()` entry point into your shared code. Wire
+your capability instance once at startup (`KapabilityRuntime.install(NoteCapabilities(repo))`), and you're done.
+
+## 🧩 How it works
 
 ```
-commonMain @Capability
-        │  Kapability KSP processor
-        ▼
-  ┌─────────────────────────────────────────────┐
-  │ generated KapabilityRuntime.invoke() (common)│
-  └───────────────┬───────────────┬─────────────┘
-    Android glue  │               │  iOS glue
-   @AppFunction   │               │  Swift AppIntent
-  @AppFunctionSerializable        │  AppEntity
-        │                         │  (SKIE async bridge)
-        ▼                         ▼
-  androidx.appfunctions      App Intents runtime
-  (Gemini)                   (Siri / Shortcuts / Spotlight)
+        commonMain: @Capability
+                 │  Kapability KSP processor
+                 ▼
+   ┌──────────────────────────────────────────────┐
+   │  generated KapabilityRuntime.invoke() (common) │
+   └───────────────┬────────────────┬──────────────┘
+      Android glue  │                │  iOS glue
+    @AppFunction    │                │  Swift AppIntent
+  @AppFunctionSerializable           │  AppEntity  (SKIE async)
+                 ▼                    ▼
+     androidx.appfunctions       App Intents runtime
+        (Gemini)                 (Siri · Shortcuts · Spotlight)
 ```
 
-## Modules
+## 📦 Modules
 
 | Artifact | Purpose |
 |---|---|
-| `dev.kotforge:kapability-annotations` | Public API: `@Capability`, `@CapabilityEntity`, `@CapabilityParam`, `@CapabilityId`, `Platform` |
+| `dev.kotforge:kapability-annotations` | Public API — `@Capability`, `@CapabilityEntity`, `@CapabilityParam`, `@CapabilityId`, `Platform` |
 | `dev.kotforge:kapability-runtime` | The `invoke()` bridge types + error model |
 | `dev.kotforge:kapability-processor` | KSP2 processor (code generation) |
-| `dev.kotforge.kapability` (Gradle plugin) | Wires everything into your build |
+| `dev.kotforge.kapability` _(Gradle plugin)_ | Wires everything into your build |
 
-## Requirements
-
-- Kotlin **2.2.20**, KSP2, AGP **8.11+**, `compileSdk 36` (Android 16 AppFunctions)
-- **SKIE** (applied by you) for the iOS `suspend` → `async` bridge
-- Xcode 16+ for the iOS App Intents build
-
-## Supported types (0.1)
+## ✅ Supported types
 
 `String`, `Int`, `Double`, `Boolean` — as parameters and `@CapabilityEntity` properties, returning a
 `@CapabilityEntity`. Anything else **fails the build with a clear error**. `List<T>`, enums, nullable,
-and `Date` are on the roadmap (they need a richer bridge codec — the platforms already support them).
+and `Date` are on the [roadmap](#-roadmap) (the platforms support them — the bridge codec is what's growing).
 
-`@Capability(platforms = [Platform.ANDROID])` limits a capability to one platform.
+## 🔧 Requirements
 
-## Sample
+| | Version |
+|---|---|
+| Kotlin | **2.2.20** (KSP2) |
+| Android Gradle Plugin | **8.11+**, `compileSdk 36` (Android 16 AppFunctions) |
+| SKIE | latest (you apply it — for the iOS `suspend` → `async` bridge) |
+| Xcode | 16+ (iOS App Intents build) |
 
-See [`samples/notes`](samples/notes) — a full KMP app that consumes the published SDK from a
-separate Gradle build (proving the external-consumer path) and runs on both an Android 16+ emulator
+## 🧪 Sample
+
+[`samples/notes`](samples/notes) is a full KMP app that consumes the published SDK from a **separate
+Gradle build** (proving the external-consumer path) and runs on both an Android 16+ emulator
 (`adb shell cmd app_function execute-app-function`) and the iOS simulator (App Intents test).
 
-## Roadmap
+## 🗺️ Roadmap
 
 - `List<T>` / enum / nullable / `Date` support (bridge-codec upgrade)
 - Reduced consumer wiring (generate the appfunctions `Provider`; register once in `commonMain`)
@@ -126,23 +175,25 @@ separate Gradle build (proving the external-consumer path) and runs on both an A
 - Local Swift Package emission for iOS distribution
 - v0.2+: schema conformance, entity queries / Spotlight, interaction donations
 
-## Contributing & releases
+## 🤝 Contributing & releases
 
-Kapability uses **[Conventional Commits](https://www.conventionalcommits.org/)** + **release-please** for
-automated, semver releases. Your commit / squash-merge titles drive the next version:
+Kapability uses **[Conventional Commits](https://www.conventionalcommits.org/)** + **release-please**.
+Commit / squash-merge titles drive the next version:
 
-| Prefix | Effect | Example |
+| Prefix | Bump | Example |
 |---|---|---|
-| `feat:` | minor bump (`0.1.0` → `0.2.0`) | `feat: support List<T> parameters` |
-| `fix:` | patch bump (`0.1.0` → `0.1.1`) | `fix: correct nullable decoding` |
-| `feat!:` or a `BREAKING CHANGE:` footer | major bump (`0.1.0` → `1.0.0`) | `feat!: rename @Capability.description` |
-| `docs:` / `chore:` / `refactor:` / `test:` / `ci:` / `build:` | no release; shown in changelog | `docs: expand README` |
+| `feat:` | minor (`0.1.0` → `0.2.0`) | `feat: support List<T> parameters` |
+| `fix:` | patch (`0.1.0` → `0.1.1`) | `fix: correct nullable decoding` |
+| `feat!:` / `BREAKING CHANGE:` | major (→ `1.0.0`) | `feat!: rename @Capability.description` |
+| `docs:` `chore:` `refactor:` `test:` `ci:` `build:` | none (changelog only) | `docs: expand README` |
 
-On every merge to `main`, release-please maintains a **"chore(main): release …" PR** with the next
-version + updated `CHANGELOG.md`. **Merging that Release PR** creates the `vX.Y.Z` tag and publishes to
-**Maven Central** + the **Gradle Plugin Portal** automatically. (A manual "Release (manual)" workflow
-exists as a fallback.)
+On merge to `main`, release-please maintains a **release PR** (version + `CHANGELOG.md`). Merging it
+tags and publishes to Maven Central + the Gradle Plugin Portal automatically.
 
-## License
+## 📄 License
 
-[Apache 2.0](LICENSE)
+```
+Copyright 2026 Piyush Sinha
+
+Licensed under the Apache License, Version 2.0 — see LICENSE.
+```
