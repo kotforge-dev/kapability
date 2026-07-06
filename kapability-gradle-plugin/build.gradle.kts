@@ -23,8 +23,8 @@ dependencies {
 }
 
 gradlePlugin {
-    website.set("https://github.com/Piyusinha/kapability")
-    vcsUrl.set("https://github.com/Piyusinha/kapability")
+    website.set("https://github.com/kotforge-dev/kapability")
+    vcsUrl.set("https://github.com/kotforge-dev/kapability")
     plugins {
         create("kapability") {
             id = "dev.kotforge.kapability"

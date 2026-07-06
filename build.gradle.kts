@@ -36,7 +36,7 @@ subprojects {
                 pom {
                     name.set(pom.first)
                     description.set(pom.second)
-                    url.set("https://github.com/Piyusinha/kapability")
+                    url.set("https://github.com/kotforge-dev/kapability")
                     licenses {
                         license {
                             name.set("The Apache License, Version 2.0")
@@ -51,9 +51,9 @@ subprojects {
                         }
                     }
                     scm {
-                        url.set("https://github.com/Piyusinha/kapability")
-                        connection.set("scm:git:git://github.com/Piyusinha/kapability.git")
-                        developerConnection.set("scm:git:ssh://git@github.com/Piyusinha/kapability.git")
+                        url.set("https://github.com/kotforge-dev/kapability")
+                        connection.set("scm:git:git://github.com/kotforge-dev/kapability.git")
+                        developerConnection.set("scm:git:ssh://git@github.com/kotforge-dev/kapability.git")
                     }
                 }
             }
