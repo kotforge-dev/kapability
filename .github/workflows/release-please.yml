@@ -1,0 +1,33 @@
+name: Release Please
+
+# On every push to main, release-please maintains a "Release PR" that bumps the version and
+# updates the changelog from Conventional Commit messages. Merging that PR creates the vX.Y.Z tag
+# + GitHub Release, and this workflow then publishes that version.
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Only runs on the push that merges the Release PR (when a release was actually created).
+  publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    uses: ./.github/workflows/_publish.yml
+    with:
+      version: ${{ needs.release-please.outputs.version }}
+    secrets: inherit
