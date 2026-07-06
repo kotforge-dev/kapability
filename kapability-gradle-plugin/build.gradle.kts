@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     `java-gradle-plugin`
     alias(libs.plugins.kotlin.jvm)
-    `maven-publish`
+    alias(libs.plugins.plugin.publish)   // Gradle's official plugin-publish (Plugin Portal + maven-publish)
 }
 
 kotlin {
@@ -23,10 +23,16 @@ dependencies {
 }
 
 gradlePlugin {
+    website.set("https://github.com/Piyusinha/kapability")
+    vcsUrl.set("https://github.com/Piyusinha/kapability")
     plugins {
         create("kapability") {
             id = "dev.kotforge.kapability"
             implementationClass = "dev.kotforge.kapability.gradle.KapabilityPlugin"
+            displayName = "Kapability"
+            description = "Declare an app capability once in KMP commonMain; generate native Android " +
+                "AppFunctions and iOS App Intents."
+            tags.set(listOf("kotlin-multiplatform", "kmp", "appfunctions", "appintents", "ksp", "android", "ios"))
         }
     }
 }
@@ -57,7 +63,3 @@ val generateVersions by tasks.registering {
 }
 
 kotlin.sourceSets.named("main") { kotlin.srcDir(generateVersions) }
-
-publishing {
-    repositories { mavenLocal() }
-}

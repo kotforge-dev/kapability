@@ -25,6 +25,3 @@ android {
     }
 }
 
-publishing {
-    repositories { mavenLocal() }
-}
