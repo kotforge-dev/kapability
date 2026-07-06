@@ -1,6 +1,6 @@
 name: iosApp
 options:
-  bundleIdPrefix: dev.kapability
+  bundleIdPrefix: com.example.notes
   deploymentTarget:
     iOS: "17.0"
 settings:
@@ -22,7 +22,7 @@ targets:
         codeSign: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.kapability.iosApp
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.notes.iosApp
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
   iosAppTests:
     type: bundle.unit-test
@@ -33,7 +33,7 @@ targets:
       - target: iosApp
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.kapability.iosAppTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.notes.iosAppTests
 schemes:
   iosApp:
     build:

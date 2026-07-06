@@ -17,7 +17,7 @@ kotlin {
 }
 
 android {
-    namespace = "dev.kapability.annotations"
+    namespace = "dev.kotforge.kapability.annotations"
     compileSdk = libs.versions.compileSdk.get().toInt()
     defaultConfig { minSdk = libs.versions.minSdk.get().toInt() }
     compileOptions {

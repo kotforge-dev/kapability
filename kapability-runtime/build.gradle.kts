@@ -16,7 +16,7 @@ kotlin {
 }
 
 android {
-    namespace = "dev.kapability.runtime"
+    namespace = "dev.kotforge.kapability.runtime"
     compileSdk = libs.versions.compileSdk.get().toInt()
     defaultConfig { minSdk = libs.versions.minSdk.get().toInt() }
     compileOptions {
