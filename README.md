@@ -126,6 +126,23 @@ separate Gradle build (proving the external-consumer path) and runs on both an A
 - Local Swift Package emission for iOS distribution
 - v0.2+: schema conformance, entity queries / Spotlight, interaction donations
 
+## Contributing & releases
+
+Kapability uses **[Conventional Commits](https://www.conventionalcommits.org/)** + **release-please** for
+automated, semver releases. Your commit / squash-merge titles drive the next version:
+
+| Prefix | Effect | Example |
+|---|---|---|
+| `feat:` | minor bump (`0.1.0` → `0.2.0`) | `feat: support List<T> parameters` |
+| `fix:` | patch bump (`0.1.0` → `0.1.1`) | `fix: correct nullable decoding` |
+| `feat!:` or a `BREAKING CHANGE:` footer | major bump (`0.1.0` → `1.0.0`) | `feat!: rename @Capability.description` |
+| `docs:` / `chore:` / `refactor:` / `test:` / `ci:` / `build:` | no release; shown in changelog | `docs: expand README` |
+
+On every merge to `main`, release-please maintains a **"chore(main): release …" PR** with the next
+version + updated `CHANGELOG.md`. **Merging that Release PR** creates the `vX.Y.Z` tag and publishes to
+**Maven Central** + the **Gradle Plugin Portal** automatically. (A manual "Release (manual)" workflow
+exists as a fallback.)
+
 ## License
 
 [Apache 2.0](LICENSE)
