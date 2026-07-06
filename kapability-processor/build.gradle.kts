@@ -12,6 +12,7 @@ kotlin {
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
+    withSourcesJar()   // Maven Central requires a sources jar (KMP modules add theirs automatically)
 }
 
 dependencies {

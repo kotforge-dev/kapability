@@ -1,0 +1,53 @@
+name: Release
+
+# Push a tag like v0.1.0 to cut a release.
+on:
+  push:
+    tags: [ 'v*' ]
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Derive version from tag
+        id: v
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      # 1) Build + sign all library artifacts into build/staging-deploy (Maven repo layout).
+      - name: Stage signed artifacts
+        env:
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+        run: ./gradlew publishAllPublicationsToStagingRepository -PkapabilityVersion=${{ steps.v.outputs.version }} --stacktrace
+
+      # 2) Bundle the staged repo and upload it to the Sonatype Central Portal (built-in path, no
+      #    third-party uploader). USER_MANAGED = it validates and waits for you to click "Publish"
+      #    in the portal; switch to AUTOMATIC once you trust the pipeline.
+      - name: Upload bundle to Maven Central (Central Portal)
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+        run: |
+          set -euo pipefail
+          ( cd build/staging-deploy && zip -qr ../central-bundle.zip . )
+          AUTH=$(printf '%s:%s' "$CENTRAL_USERNAME" "$CENTRAL_PASSWORD" | base64)
+          curl --fail --show-error --silent -X POST \
+            -H "Authorization: Bearer ${AUTH}" \
+            -F bundle=@build/central-bundle.zip \
+            "https://central.sonatype.com/api/v1/publisher/upload?name=kapability-${{ steps.v.outputs.version }}&publishingType=USER_MANAGED"
+
+      # 3) Publish the Gradle plugin to the Gradle Plugin Portal.
+      - name: Publish plugin to the Gradle Plugin Portal
+        env:
+          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+        run: ./gradlew :kapability-gradle-plugin:publishPlugins -PkapabilityVersion=${{ steps.v.outputs.version }} --stacktrace
