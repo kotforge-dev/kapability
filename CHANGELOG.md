@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/kotforge-dev/kapability/compare/v0.1.0...v0.2.0) (2026-07-07)
+
+
+### Features
+
+* carry List&lt;String&gt;, enums and nullable types across the bridge ([99a5f1a](https://github.com/kotforge-dev/kapability/commit/99a5f1ae767855919342995f39fced5bc9ffb5ae))
+* carry List&lt;String&gt;, enums and nullable types across the bridge ([5ede258](https://github.com/kotforge-dev/kapability/commit/5ede258efa124dc025700d61e7e3b9535009fbd4))
+
 ## 0.1.0 (2026-07-06)
 
 
