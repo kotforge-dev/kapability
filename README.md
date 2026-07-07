@@ -28,7 +28,7 @@ in implementation. So a KMP team today writes and maintains **two parallel capab
 `@Capability` declaration in `commonMain` into native glue for both platforms at build time.
 
 > [!NOTE]
-> **Status: `0.1.0` — early / pre-release.** Proven end-to-end on both platforms; the public API may still change.
+> **Status: early / pre-release.** Proven end-to-end on both platforms; while pre-1.0 the public API may still change. (Current version: the Maven Central badge above.)
 
 ## ✨ Why Kapability
 
@@ -62,7 +62,7 @@ plugins {
     kotlin("multiplatform")
     id("com.android.library")
     id("co.touchlab.skie")                       // required: Kotlin suspend -> Swift async bridge
-    id("dev.kotforge.kapability") version "0.1.0"
+    id("dev.kotforge.kapability") version "0.2.0"
 }
 ```
 
@@ -73,7 +73,7 @@ plugins {
 plugins {
     id("com.android.application")
     kotlin("android")
-    id("dev.kotforge.kapability") version "0.1.0"
+    id("dev.kotforge.kapability") version "0.2.0"
 }
 
 kapability {
