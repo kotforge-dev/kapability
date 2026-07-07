@@ -10,14 +10,18 @@ import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ksp.writeTo
 
-// Typealiases (= Map<String,String>) from kapability-runtime. Using them keeps the generated
-// signatures free of parameterized types, which KotlinPoet builds via APIs that don't resolve here.
+// Bridge typealiases (both = String, a JSON object document) from kapability-runtime. The generated
+// dispatch reads/writes them through the runtime's decodePayload/buildPayload helpers.
 private val CAPABILITY_PARAMS = ClassName("dev.kotforge.kapability.runtime", "CapabilityParams")
 private val CAPABILITY_RESULT = ClassName("dev.kotforge.kapability.runtime", "CapabilityResult")
 private val CAPABILITY_EXCEPTION = ClassName("dev.kotforge.kapability.runtime", "CapabilityException")
-private val REQUIRED_PARAM = MemberName("dev.kotforge.kapability.runtime", "requiredParam")
-private val MAP_OF = MemberName("kotlin.collections", "mapOf")
+private val DECODE_PAYLOAD = MemberName("dev.kotforge.kapability.runtime", "decodePayload")
+private val BUILD_PAYLOAD = MemberName("dev.kotforge.kapability.runtime", "buildPayload")
 private val KAPABILITY_RUNTIME = ClassName("dev.kotforge.kapability", "KapabilityRuntime")
+
+/** Types Kapability supports today, for the fail-fast error message. */
+private const val SUPPORTED_TYPES =
+    "String, Int, Double, Boolean, enums, List<String>, and nullable (?) variants"
 
 private val APP_FUNCTION = ClassName("androidx.appfunctions.service", "AppFunction")
 private val APP_FUNCTION_CONTEXT = ClassName("androidx.appfunctions", "AppFunctionContext")
@@ -59,18 +63,20 @@ class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolP
         // Fail-fast: refuse unsupported types instead of silently mis-generating.
         var hasError = false
         capabilities.forEach { cap ->
-            cap.params.filter { scalarOf(it.type) == null }.forEach {
+            cap.params.filter { it.supported == null }.forEach {
                 hasError = true
                 env.logger.error(
-                    "Kapability: unsupported type '${it.type}' for parameter '${it.name}' in " +
-                        "capability '${cap.functionName}'. Supported: String, Int, Double, Boolean."
+                    "Kapability: type '${it.type}' for parameter '${it.name}' in capability " +
+                        "'${cap.functionName}' is not supported yet. Supported: $SUPPORTED_TYPES. " +
+                        "(Date, nested @CapabilityEntity, and non-String/object lists are still pending.)"
                 )
             }
-            cap.entity?.properties?.filter { scalarOf(it.type) == null }?.forEach {
+            cap.entity?.properties?.filter { it.supported == null }?.forEach {
                 hasError = true
                 env.logger.error(
-                    "Kapability: unsupported type '${it.type}' for property '${it.name}' in " +
-                        "@CapabilityEntity '${cap.entity.className.simpleName}'. Supported: String, Int, Double, Boolean."
+                    "Kapability: type '${it.type}' for property '${it.name}' in @CapabilityEntity " +
+                        "'${cap.entity.className.simpleName}' is not supported yet. Supported: $SUPPORTED_TYPES. " +
+                        "(Date, nested @CapabilityEntity, and non-String/object lists are still pending.)"
                 )
             }
         }
@@ -127,17 +133,17 @@ class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolP
                 cap.enclosing.fieldName(), CAPABILITY_EXCEPTION,
                 "${cap.enclosing.simpleName} is not installed. Call KapabilityRuntime.install(...) at startup.",
             )
+            if (cap.params.isNotEmpty()) body.addStatement("val payload = %M(params)", DECODE_PAYLOAD)
             val args = cap.params.map {
-                CodeBlock.of("%N = params.%M(%S)%L", it.name, REQUIRED_PARAM, it.name, scalarOf(it.type)!!.kotlinDecodeSuffix())
+                CodeBlock.of("%N = %L", it.name, it.supported!!.kotlinDecode("payload", it.name))
             }
             body.addStatement("val result = instance.%N(%L)", cap.functionName, args.joinToCode(", "))
-            if (cap.entity != null) {
-                // Everything is encoded to String over the bridge; toString() is identity for String.
-                val entries = cap.entity.properties.map { CodeBlock.of("%S to result.%N.toString()", it.name, it.name) }
-                body.addStatement("%M(%L)", MAP_OF, entries.joinToCode(", "))
-            } else {
-                body.addStatement("emptyMap<String, String>()")
+            // Build the result JSON payload (or "{}" when there is no @CapabilityEntity return type).
+            body.beginControlFlow("%M", BUILD_PAYLOAD)
+            cap.entity?.properties?.forEach { prop ->
+                body.addStatement("%L", prop.supported!!.kotlinEncode(prop.name, CodeBlock.of("result.%N", prop.name)))
             }
+            body.endControlFlow()
             body.endControlFlow()
         }
         body.addStatement("else -> throw %T(%P)", CAPABILITY_EXCEPTION, "Unknown capability: \$id")
@@ -173,13 +179,14 @@ class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolP
                     .addAnnotation(APP_FUNCTION_SERIALIZABLE)
                     .primaryConstructor(
                         FunSpec.constructorBuilder().apply {
-                            entity.properties.forEach { addParameter(it.name, scalarOf(it.type)!!.androidType()) }
+                            entity.properties.forEach { addParameter(it.name, it.supported!!.androidSurface().androidType()) }
                         }.build()
                     )
                     .apply {
                         entity.properties.forEach {
                             addProperty(
-                                PropertySpec.builder(it.name, scalarOf(it.type)!!.androidType()).initializer(it.name).build()
+                                PropertySpec.builder(it.name, it.supported!!.androidSurface().androidType())
+                                    .initializer(it.name).build()
                             )
                         }
                     }
@@ -216,15 +223,24 @@ class KapabilityProcessor(private val env: SymbolProcessorEnvironment) : SymbolP
         fn.addKdoc("@param appFunctionContext The context in which the AppFunction is executed.\n")
         cap.params.forEach { fn.addKdoc("@param %L %L\n", it.name, it.description) }
 
-        cap.params.forEach { fn.addParameter(it.name, scalarOf(it.type)!!.androidType()) }
+        // The appfunctions surface uses String for enum-typed params (see androidSurface()).
+        cap.params.forEach { fn.addParameter(it.name, it.supported!!.androidSurface().androidType()) }
 
-        val invokeArgs = cap.params.map { CodeBlock.of("%S to %N.toString()", it.name, it.name) }
-        fn.addStatement(
-            "val result = %T.invoke(%S, %M(%L))",
-            KAPABILITY_RUNTIME, cap.id, MAP_OF, invokeArgs.joinToCode(", "),
-        )
+        // Encode the native params into the JSON bridge payload, dispatch, then decode the result JSON
+        // back into the @AppFunctionSerializable entity.
+        if (cap.params.isEmpty()) {
+            fn.addStatement("val result = %T.invoke(%S, %M { })", KAPABILITY_RUNTIME, cap.id, BUILD_PAYLOAD)
+        } else {
+            fn.beginControlFlow("val params = %M", BUILD_PAYLOAD)
+            cap.params.forEach { p ->
+                fn.addStatement("%L", p.supported!!.androidSurface().kotlinEncode(p.name, CodeBlock.of("%N", p.name)))
+            }
+            fn.endControlFlow()
+            fn.addStatement("val result = %T.invoke(%S, params)", KAPABILITY_RUNTIME, cap.id)
+        }
+        fn.addStatement("val payload = %M(result)", DECODE_PAYLOAD)
         val ctorArgs = cap.entity!!.properties.map {
-            CodeBlock.of("%N = result.getValue(%S)%L", it.name, it.name, scalarOf(it.type)!!.kotlinDecodeSuffix())
+            CodeBlock.of("%N = %L", it.name, it.supported!!.androidSurface().kotlinDecode("payload", it.name))
         }
         fn.addStatement("return %T(%L)", returnType, ctorArgs.joinToCode(", "))
         return fn.build()

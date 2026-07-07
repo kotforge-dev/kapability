@@ -17,7 +17,9 @@ final class CreateNoteIntentTests: XCTestCase {
         let intent = CreateNoteIntent()
         intent.title = "Meeting notes"
         intent.content = "Discuss KMP bridge"
-        intent.priority = 3
+        intent.priority = .HIGH
+        intent.tags = ["work", "urgent"]
+        intent.dueLabel = nil
 
         let result = try await intent.perform()
         let note = result.value
@@ -27,7 +29,9 @@ final class CreateNoteIntentTests: XCTestCase {
         XCTAssertEqual(note?.id, "note-1")
         XCTAssertEqual(note?.title, "Meeting notes")
         XCTAssertEqual(note?.content, "Discuss KMP bridge")
-        // priority round-trips as Int through the string bridge (M3 type mapping).
-        XCTAssertEqual(note?.priority, 3)
+        // enum, List<String> and nullable all round-trip through the JSON bridge.
+        XCTAssertEqual(note?.priority, .HIGH)
+        XCTAssertEqual(note?.tags, ["work", "urgent"])
+        XCTAssertNil(note?.dueLabel)
     }
 }

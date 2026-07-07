@@ -148,9 +148,16 @@ your capability instance once at startup (`KapabilityRuntime.install(NoteCapabil
 
 ## ✅ Supported types
 
-`String`, `Int`, `Double`, `Boolean` — as parameters and `@CapabilityEntity` properties, returning a
-`@CapabilityEntity`. Anything else **fails the build with a clear error**. `List<T>`, enums, nullable,
-and `Date` are on the [roadmap](#-roadmap) (the platforms support them — the bridge codec is what's growing).
+As parameters and `@CapabilityEntity` properties (returning a `@CapabilityEntity`):
+
+- `String`, `Int`, `Double`, `Boolean`
+- **enums** — a Swift `AppEnum` on iOS; surfaced as its `String` name to `androidx.appfunctions` on Android
+- **`List<String>`**
+- **nullable (`?`)** variants of the above
+
+Values travel across a JSON bridge; anything unsupported **fails the build with a clear error**.
+Still on the [roadmap](#-roadmap): `Date`, non-`String` lists (`List<Int>` …), nested
+`@CapabilityEntity` types, and `List<CustomObject>`.
 
 ## 🔧 Requirements
 
@@ -169,7 +176,7 @@ Gradle build** (proving the external-consumer path) and runs on both an Android 
 
 ## 🗺️ Roadmap
 
-- `List<T>` / enum / nullable / `Date` support (bridge-codec upgrade)
+- Richer types: `Date`, non-`String` lists (via primitive-array mapping), nested `@CapabilityEntity` + `List<CustomObject>`
 - Reduced consumer wiring (generate the appfunctions `Provider`; register once in `commonMain`)
 - `manifest.json` + a `verifyKapability` drift-detection task
 - Local Swift Package emission for iOS distribution
