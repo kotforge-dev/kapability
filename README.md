@@ -148,16 +148,30 @@ your capability instance once at startup (`KapabilityRuntime.install(NoteCapabil
 
 ## ✅ Supported types
 
-As parameters and `@CapabilityEntity` properties (returning a `@CapabilityEntity`):
+What each on-device platform supports natively, and what **Kapability** carries today — as
+parameters *and* `@CapabilityEntity` properties, returning a `@CapabilityEntity`. Values travel
+across a JSON bridge; anything Kapability doesn't support **fails the build with a clear error**.
 
-- `String`, `Int`, `Double`, `Boolean`
-- **enums** — a Swift `AppEnum` on iOS; surfaced as its `String` name to `androidx.appfunctions` on Android
-- **`List<String>`**
-- **nullable (`?`)** variants of the above
+| Type | Android AppFunctions | iOS App Intents | Kapability | How Kapability carries it |
+|---|:---:|:---:|:---:|---|
+| `String` · `Int` · `Double` · `Boolean` | ✅ | ✅ | ✅ | JSON scalar → native type on both sides |
+| `Long` · `Float` | ✅ | ✅ | 🕓 | *planned* |
+| Enum | ❌ <sup>1</sup> | ✅ `AppEnum` | ✅ | enum name as a JSON string → Swift `AppEnum` on iOS, `String` on the Android surface |
+| `List<String>` | ✅ | ✅ `[String]` | ✅ | JSON array → `List<String>` / `[String]` |
+| `List<Int>` · `List<Double>` · `List<Boolean>` | ⚠️ arrays <sup>2</sup> | ✅ `[T]` | 🕓 | *planned — needs `IntArray`/… mapping on Android* |
+| Nullable (`T?`) | ✅ | ✅ optional | ✅ | JSON `null` / absent → nullable type on both sides |
+| `Date` | ✅ `java.time.*` | ✅ `Date` | 🕓 | *planned — needs `kotlinx-datetime` + mapping* |
+| `@CapabilityEntity` (return type) | ✅ `@AppFunctionSerializable` | ✅ `AppEntity` | ✅ | generated `@AppFunctionSerializable` / `AppEntity`, one level deep |
+| Nested `@CapabilityEntity` | ✅ <sup>3</sup> | ✅ | 🕓 | *planned — recursive codegen* |
+| `List<@CapabilityEntity>` | ⚠️ <sup>3</sup> | ✅ `[AppEntity]` | 🕓 | *planned — recursive codegen* |
 
-Values travel across a JSON bridge; anything unsupported **fails the build with a clear error**.
-Still on the [roadmap](#-roadmap): `Date`, non-`String` lists (`List<Int>` …), nested
-`@CapabilityEntity` types, and `List<CustomObject>`.
+**Legend:** ✅ supported · 🕓 planned ([roadmap](#-roadmap)) · ⚠️ supported with caveats · ❌ not supported by the platform
+
+<sup>1</sup> `androidx.appfunctions` 1.0.0-alpha08 rejects arbitrary enums — Kapability bridges the gap by surfacing an enum as its `String` name on Android (a real `AppEnum` on iOS), so it works on both.
+<sup>2</sup> AppFunctions models numeric collections as primitive arrays (`IntArray`, `DoubleArray`, `BooleanArray`), not `List<T>`.
+<sup>3</sup> Native platform support expected but not yet verified against alpha08.
+
+_The Android column reflects `androidx.appfunctions` **1.0.0-alpha08**._
 
 ## 🔧 Requirements
 
