@@ -13,6 +13,14 @@ kotlin {
     }
     iosArm64()
     iosSimulatorArm64()
+
+    sourceSets {
+        // implementation (not api): the JSON codec is an internal detail of the bridge — generated
+        // consumer code talks to the Params/ResultBuilder wrappers below, never to serialization types.
+        commonMain.dependencies {
+            implementation(libs.kotlinx.serialization.json)
+        }
+    }
 }
 
 android {
